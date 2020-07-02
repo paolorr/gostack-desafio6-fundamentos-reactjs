@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import filesize from 'filesize';
@@ -22,20 +22,42 @@ const Import: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<FileProps[]>([]);
   const history = useHistory();
 
-  async function handleUpload(): Promise<void> {
-    // const data = new FormData();
+  async function handleUpload(e: FormEvent): Promise<void> {
+    e.preventDefault();
 
-    // TODO
+    if (!uploadedFiles || uploadedFiles.length === 0) {
+      return;
+    }
+
+    const data = new FormData();
+    data.append('file', uploadedFiles[0].file);
 
     try {
-      // await api.post('/transactions/import', data);
+      await api.post('/transactions/import', data);
+      history.push('/');
     } catch (err) {
-      // console.log(err.response.error);
+      console.log(err.response.error);
     }
   }
 
   function submitFile(files: File[]): void {
-    // TODO
+    // const filteredFiles = files.filter(
+    //   file1 => !uploadedFiles.some(file2 => file2.name === file1.name),
+    // );
+
+    // const mappedFiles = filteredFiles.map(file => ({
+    //   file,
+    //   name: file.name,
+    //   readableSize: file.size.toString(),
+    // }));
+
+    setUploadedFiles([
+      {
+        file: files[0],
+        name: files[0].name,
+        readableSize: filesize(files[0].size, { locale: 'pt-BR' }),
+      },
+    ]);
   }
 
   return (
@@ -52,7 +74,11 @@ const Import: React.FC = () => {
               <img src={alert} alt="Alert" />
               Permitido apenas arquivos CSV
             </p>
-            <button onClick={handleUpload} type="button">
+            <button
+              onClick={handleUpload}
+              type="button"
+              disabled={!uploadedFiles || uploadedFiles.length === 0}
+            >
               Enviar
             </button>
           </Footer>
